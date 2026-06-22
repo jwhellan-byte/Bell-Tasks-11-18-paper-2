@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AQA Science Flashcards</title>
+  <style>
+    :root {
+      --primary:       #2e7d52;
+      --primary-dark:  #1b5c39;
+      --primary-light: #e8f5ee;
+      --completed-bg:  #1b5c39;
+      --completed-border: #2e7d52;
+      --gold:          #f5a623;
+      --gold-complete: #ff9f00;
+      --bg:            #f0f7f3;
+      --card-front-bg: var(--primary);
+      --card-back-bg:  #ffffff;
+      --card-back-border: var(--primary);
+      --text-main:     #1a1a1a;
+      --text-muted:    rgba(255,255,255,0.55);
+      --text-back-muted: #999;
+      --topbar-bg:     #ffffff;
+      --topbar-border: #d0e8da;
+      --select-bg:     #ffffff;
+      --select-color:  #1a1a1a;
+      --btn-layout-bg: #ffffff;
+      --btn-layout-color: var(--primary);
+      --btn-layout-border: var(--primary);
+      --label-back-color: var(--primary);
+      --answer-color:  #222;
+      --shadow:        0 4px 15px rgba(0,0,0,0.10);
+      --card-radius:   13px;
+    }
+    body.dark {
+      --primary:       #3dab6e;
+      --primary-dark:  #2e8a56;
+      --primary-light: #1a3328;
+      --completed-bg:  #145230;
+      --completed-border: #3dab6e;
+      --bg:            #121c17;
+      --card-front-bg: #1e3d2a;
+      --card-back-bg:  #1a2820;
+      --card-back-border: #3dab6e;
+      --text-main:     #e8f5ee;
+      --text-muted:    rgba(200,240,215,0.45);
+      --text-back-muted: #5a8a6a;
+      --topbar-bg:     #1a2820;
+      --topbar-border: #2a4535;
+      --select-bg:     #1a2820;
+      --select-color:  #c8f0d7;
+      --btn-layout-bg: #1a2820;
+      --btn-layout-color: #3dab6e;
+      --btn-layout-border: #3dab6e;
+      --label-back-color: #3dab6e;
+      --answer-color:  #c8f0d7;
+      --shadow:        0 4px 20px rgba(0,0,0,0.4);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      padding: 16px;
+      transition: background 0.3s;
+    }
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--topbar-bg);
+      border: 1px solid var(--topbar-border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .topbar h1 {
+      font-size: 1.15rem;
+      color: var(--primary);
+      flex: 1;
+      min-width: 130px;
+    }
+    select, .btn {
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    select {
+      border: 1px solid var(--topbar-border);
+      background: var(--select-bg);
+      color: var(--select-color);
+    }
+    .btn {
+      border: 2px solid var(--btn-layout-border);
+      background: var(--btn-layout-bg);
+      color: var(--btn-layout-color);
+      font-weight: bold;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn.btn-dark  { font-size: 1rem; padding: 6px 10px; }
+    .btn.btn-rand  { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .rand-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .rand-row label { font-size: 0.8rem; color: var(--primary); font-weight: bold; }
+    /* ── GRID ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .card-grid.column-layout {
+      grid-template-columns: 1fr;
+      max-width: 500px;
+    }
+    /* ── CARD ── */
+    .card-wrapper {
+      perspective: 1000px;
+      min-height: 210px;
+    }
+    .card-wrapper.has-img { min-height: 310px; }
+    .card {
+      width: 100%; height: 100%;
+      min-height: inherit;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.5s ease;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .card.flipped { transform: rotateY(180deg); }
+    .card-wrapper.completed .card-front { background: var(--completed-bg); }
+    .card-wrapper.completed .card-back  { border-color: var(--completed-border); }
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%; min-height: inherit;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: var(--card-radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 22px 18px 14px;
+      box-shadow: var(--shadow);
+      user-select: none; -webkit-user-select: none;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .card-front {
+      background: var(--card-front-bg);
+      color: #fff;
+    }
+    .card-back {
+      background: var(--card-back-bg);
+      color: var(--text-main);
+      transform: rotateY(180deg);
+      border: 2px solid var(--card-back-border);
+    }
+    .face-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      margin-bottom: 9px;
+    }
+    .card-back .face-label { color: var(--label-back-color); }
+    .card-wrapper.completed .card-back .face-label { color: var(--completed-border); }
+    .question-text {
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.45;
+      color: #fff;
+    }
+    .answer-text {
+      font-size: 1.15rem;
+      text-align: center;
+      line-height: 1.55;
+      color: var(--answer-color);
+      margin-bottom: 10px;
+    }
+    .card-front img {
+      max-height: 145px;
+      max-width: 100%;
+      object-fit: contain;
+      margin-bottom: 9px;
+      border-radius: 7px;
+    }
+    .hint {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+    .card-back .hint { color: var(--text-back-muted); }
+    /* ── BACK BOTTOM ── */
+    .back-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      width: 100%;
+    }
+    .stars { display: flex; gap: 6px; font-size: 1.6rem; line-height: 1; }
+    .star { color: #ddd; transition: color 0.25s, text-shadow 0.25s; }
+    .star.earned   { color: var(--gold); }
+    .star.complete { color: var(--gold-complete); text-shadow: 0 0 8px rgba(255,159,0,0.7); }
+    .knew-btn {
+      padding: 7px 20px;
+      border-radius: 20px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .knew-btn:active  { transform: scale(0.95); }
+    .knew-btn:hover   { background: var(--primary-dark); }
+    .knew-btn:disabled { background: #2e7d52; cursor: default; }
+    .card-wrapper.completed .knew-btn { background: #2e7d52; }
+
+
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>AQA Science Flashcards</h1>
+
+    <!-- Topic selector -->
+    <select id="topicSelect"></select>
+
+    <!-- Layout toggle -->
+    <button class="btn" id="layoutBtn">☰ Column</button>
+
+    <!-- Dark mode -->
+    <button class="btn btn-dark" id="darkBtn" title="Toggle dark mode">🌙</button>
+
+    <!-- Randomise row -->
+    <div class="rand-row">
+      <button class="btn btn-rand" id="randBtn">🔀 Randomise</button>
+      <label for="randMax">up to:</label>
+      <select id="randMax"></select>
+    </div>
+  </div>
+
+  <div class="card-grid" id="cardGrid"></div>
+
+<script>
